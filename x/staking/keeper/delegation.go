@@ -763,6 +763,64 @@ func (k Keeper) Unbond(
 	return amount, nil
 }
 
+// Unbond unbonds a particular delegation and perform associated store operations.
+// and send stake coin to delegator immediately.delegator can not withdraw rewards in this method
+func (k Keeper) UnbondImmediately(
+	ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec,
+) (amount math.Int, err error) {
+	// check if a delegation object exists in the store
+	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
+	if !found {
+		return amount, types.ErrNoDelegatorForAddress
+	}
+
+	// ensure that we have enough shares to remove
+	if delegation.Shares.LT(shares) {
+		return amount, sdkerrors.Wrap(types.ErrNotEnoughDelegationShares, delegation.Shares.String())
+	}
+
+	// get validator
+	validator, found := k.GetValidator(ctx, valAddr)
+	if !found {
+		return amount, types.ErrNoValidatorFound
+	}
+
+	// subtract shares from delegation
+	delegation.Shares = delegation.Shares.Sub(shares)
+
+	delegatorAddress, err := sdk.AccAddressFromBech32(delegation.DelegatorAddress)
+	if err != nil {
+		return amount, err
+	}
+
+	//isValidatorOperator := delegatorAddress.Equals(validator.GetOperator())
+
+	if delegation.Shares.IsZero() {
+		err = k.RemoveDelegation(ctx, delegation)
+	} else {
+		k.SetDelegation(ctx, delegation)
+		// call the after delegation modification hook
+		// // create new delegation period record
+		err = k.AfterDelegationModified(ctx, delegatorAddress, delegation.GetValidatorAddr())
+	}
+
+	if err != nil {
+		return amount, err
+	}
+
+	// remove the shares and coins from the validator
+	// NOTE that the amount is later (in keeper.Delegation) moved between staking module pools
+	validator, amount = k.RemoveValidatorTokensAndShares(ctx, validator, shares)
+	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
+		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period.
+		// and withdraw validator's reward.
+		//todo:check if need to  withdraw validator's reward.
+		k.RemoveValidator(ctx, validator.GetOperator())
+	}
+
+	return amount, nil
+}
+
 // getBeginInfo returns the completion time and height of a redelegation, along
 // with a boolean signaling if the redelegation is complete based on the source
 // validator.
