@@ -38,6 +38,11 @@ func (k msgServer) CreateValidator(goCtx context.Context, msg *types.MsgCreateVa
 		return nil, err
 	}
 
+	//verify amount
+	if msg.Value.Amount.Int64() <= types.MinCreateValidatorDelegateAmount {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "amount must be greater than %d", types.MinCreateValidatorDelegateAmount)
+	}
+
 	if msg.Commission.Rate.LT(k.MinCommissionRate(ctx)) {
 		return nil, sdkerrors.Wrapf(types.ErrCommissionLTMinRate, "cannot set validator commission to less than minimum rate of %s", k.MinCommissionRate(ctx))
 	}
