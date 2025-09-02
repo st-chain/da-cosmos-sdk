@@ -8,7 +8,7 @@ import (
 
 	"github.com/armon/go-metrics"
 	metricsprom "github.com/armon/go-metrics/prometheus"
-	"github.com/prometheus/client_golang/prometheus"
+//	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/expfmt"
 )
 
@@ -140,15 +140,15 @@ func (m *Metrics) gatherPrometheus() (GatherResponse, error) {
 	if !m.prometheusEnabled {
 		return GatherResponse{}, fmt.Errorf("prometheus metrics are not enabled")
 	}
-
+/*
 	metricsFamilies, err := prometheus.DefaultGatherer.Gather()
 	if err != nil {
 		return GatherResponse{}, fmt.Errorf("failed to gather prometheus metrics: %w", err)
 	}
-
+*/
 	buf := &bytes.Buffer{}
 	defer buf.Reset()
-
+/*
 	e := expfmt.NewEncoder(buf, expfmt.NewFormat(expfmt.TypeTextPlain))
 	for _, mf := range metricsFamilies {
 		if err := e.Encode(mf); err != nil {
@@ -156,6 +156,7 @@ func (m *Metrics) gatherPrometheus() (GatherResponse, error) {
 		}
 	}
 
+	*/
 	return GatherResponse{ContentType: ContentTypeText, Metrics: buf.Bytes()}, nil
 }
 
