@@ -213,8 +213,6 @@ func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customCo
 		}
 
 		conf.RPC.PprofListenAddress = "localhost:6060"
-		conf.P2P.RecvRate = 5120000
-		conf.P2P.SendRate = 5120000
 		tmcfg.WriteConfigFile(tmCfgFile, conf)
 
 	case err != nil:
@@ -270,7 +268,8 @@ func interceptConfigs(rootViper *viper.Viper, customAppTemplate string, customCo
 	return conf, nil
 }
 
-// add server commands
+// AddCommands adds some commands to the root command. These commands include:
+// start, tendermint, export, version, and rollback.
 func AddCommands(rootCmd *cobra.Command, defaultNodeHome string, appCreator types.AppCreator, appExport types.AppExporter, addStartFlags types.ModuleInitFlags) {
 	tendermintCmd := &cobra.Command{
 		Use:     "tendermint",
