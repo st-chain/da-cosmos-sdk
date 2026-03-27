@@ -1,0 +1,124 @@
+version: "2"
+
+run:
+  tests: true
+  timeout: 15m
+  sort-results: true
+  allow-parallel-runners: true
+  concurrency: 4
+  exclude-dir: testutil/testdata
+  skip-files:
+    - server/grpc/gogoreflection/fix_registration.go
+    - "fix_registration.go"
+    - "x/bank/migrations/v4/gen_state_test.go"
+    - ".*\\.pb\\.go$"
+    - ".*\\.pb\\.gw\\.go$"
+    - ".*\\.pulsar\\.go$"
+
+linters:
+  default: none
+  enable:
+    - depguard
+    - dogsled
+    - goconst
+    - gocritic
+    - gosec
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - nolintlint
+    - revive
+    - staticcheck
+    - unconvert
+    - unused
+  settings:
+    gosec:
+      includes:
+        - G102
+        - G103
+        - G104
+        - G106
+        - G107
+        - G108
+        - G109
+        - G110
+        - G111
+        - G112
+        - G113
+        - G114
+        - G201
+        - G202
+        - G203
+        - G204
+        - G301
+        - G302
+        - G303
+        - G304
+        - G305
+        - G306
+        - G307
+        - G401
+        - G402
+        - G403
+        - G404
+        - G501
+        - G502
+        - G503
+        - G504
+        - G505
+        - G601
+    misspell:
+      locale: US
+    dogsled:
+      max-blank-identifiers: 6
+    nolintlint:
+      allow-unused: false
+      allow-leading-space: true
+      require-explanation: true
+      require-specific: false
+    gocritic:
+      disabled-checks:
+        - regexpMust
+        - appendAssign
+        - ifElseChain
+
+formatters:
+  enable:
+    - gci
+    - gofumpt
+  settings:
+    gci:
+      custom-order: true
+      sections:
+        - standard
+        - default
+        - prefix(cosmossdk.io)
+        - prefix(github.com/cosmos/cosmos-sdk)
+    gofumpt:
+      extra-rules: true
+
+issues:
+  exclude-rules:
+    - text: "Use of weak random number generator"
+      linters:
+        - gosec
+    - text: "ST1003:"
+      linters:
+        - staticcheck
+    # FIXME: Disabled until staticcheck ships the fix from https://github.com/dominikh/go-tools/issues/389
+    - text: "ST1016:"
+      linters:
+        - staticcheck
+    - path: "migrations"
+      text: "SA1019:"
+      linters:
+        - staticcheck
+    - text: "SA1019: codec.NewAminoCodec is deprecated" # TODO remove once migration path is set out
+      linters:
+        - staticcheck
+    - text: "leading space"
+      linters:
+        - nolintlint
+  max-issues-per-linter: 10000
+  max-same-issues: 10000
