@@ -25,6 +25,9 @@ const (
 	RouterKey = ModuleName
 )
 
+const (
+	MinCreateValidatorDelegateAmount int64 = 1000000000000
+)
 
 var (
 	// Keys for store prefixes
